@@ -59,9 +59,12 @@ class AdminController extends Controller
 
         $user->save();
 
-        
+        $notification = array(
+            'message' => 'Profile updated successfully.',
+            'alert-type' => 'success'
+        );
 
-        return redirect()->back()->with('success', 'Profile updated successfully.');
+        return redirect()->back()->with($notification);
     }
 
     public function changePassword(Request $request)
@@ -74,12 +77,21 @@ class AdminController extends Controller
         $user = Auth::user();
 
         if (!\Hash::check($request->old_password, $user->password)) {
-            return redirect()->back()->withErrors(['old_password' => 'The provided password does not match your current password.']);
+            $notification = array(
+                'message' => 'The provided password does not match your current password.',
+                'alert-type' => 'error'
+            );
+            return redirect()->back()->with($notification);
         }
 
         $user->password = \Hash::make($request->new_password);
         $user->save();
 
-        return redirect()->back()->with('success', 'Password changed successfully.');
+        $notification = array(
+            'message' => 'Password changed successfully.',
+            'alert-type' => 'success'
+        );
+
+        return redirect()->back()->with($notification);
     }
 }
