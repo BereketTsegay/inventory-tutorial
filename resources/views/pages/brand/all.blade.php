@@ -24,57 +24,43 @@
 
                                     <div class="card-header">
                                         <h5 class="card-title mb-0">Basic Datatable</h5>
+
+                                        <a href="{{ route('add.brand') }}" class="btn btn-primary align-self-end">Add Brand</a>
                                     </div><!-- end card header -->
 
                                     <div class="card-body">
                                         <table id="datatable" class="table table-bordered dt-responsive table-responsive nowrap">
                                             <thead>
                                             <tr>
-                                                <th>Name</th>
-                                                <th>Position</th>
-                                                <th>Office</th>
-                                                <th>Age</th>
-                                                <th>Start date</th>
-                                                <th>Salary</th>
+                                                @foreach ($headers as $comlumn)
+                                                    <th>{{ $comlumn }}</th>
+                                                @endforeach
+                                                <th>Action</th>
                                             </tr>
                                             </thead>
                                             <tbody>
                                                 <tr>
-                                                    <td>John Smith</td>
-                                                    <td>Project Manager</td>
-                                                    <td>Los Angeles</td>
-                                                    <td>35</td>
-                                                    <td>2023-08-10</td>
-                                                    <td>$110,000</td>
+                                                    @foreach ($brands as $brand)
+                                                        @foreach ($headers as $comlumn)
+                                                            <td>{{ $brand->$comlumn }}</td>
+                                                        @endforeach
+                                                         <td>
+                                                        <a href="{{ route('edit.brand', $brand->id) }}" class="btn btn-sm btn-outline-primary">Edit</a>
+                                                        <form action="{{ route('delete.brand', $brand->id) }}" method="POST" style="display: inline;">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button id="delete" type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to delete this brand?')">Delete</button>
+                                                        </form>
+                                                    </td>
+                                                    @endforeach
+                                                   
                                                 </tr>
-                                                <tr>
-                                                    <td>Emily Davis</td>
-                                                    <td>Marketing Specialist</td>
-                                                    <td>Chicago</td>
-                                                    <td>29</td>
-                                                    <td>2022-12-05</td>
-                                                    <td>$85,000</td>
-                                                </tr>
-                                                <tr>
-                                                    <td>Michael Brown</td>
-                                                    <td>Software Engineer</td>
-                                                    <td>San Francisco</td>
-                                                    <td>31</td>
-                                                    <td>2023-04-18</td>
-                                                    <td>$120,000</td>
-                                                </tr>
-                                                <tr>
-                                                    <td>Sarah Wilson</td>
-                                                    <td>Financial Analyst</td>
-                                                    <td>Houston</td>
-                                                    <td>28</td>
-                                                    <td>2023-10-30</td>
-                                                    <td>$95,000</td>
-                                                </tr>
-                                                
-                                           
-                                                
-                                               
+                                                  @if (count($brands) === 0)
+                                                    <tr>
+                                                        <td colspan="{{ count($headers) }}" class="text-center">No brands found.</td>
+                                                    </tr>
+                                                      
+                                                  @endif
                                             </tbody>
                                         </table>
                                     </div>

@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Brand;
+use App\Http\Requests\BrandRequest;
+use Illuminate\Support\Facades\Schema;
 
 class BrandController extends Controller
 {
@@ -12,7 +15,7 @@ class BrandController extends Controller
     {
         $headers = Schema::getColumnListing((new Brand)->getTable());
 
-        $brands = Brand::all()->paginate(10); // Adjust the number of items per page as needed
+        $brands = Brand::all(); // Adjust the number of items per page as needed
 
         return view('pages.brand.all', compact('brands', 'headers'));
     }
