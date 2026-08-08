@@ -36,50 +36,30 @@
                                
                             </li>
                 
-                            <!-- <li>
-                                <a href="landing.html" target="_blank">
-                                    <i data-feather="globe"></i>
-                                    <span> Landing </span>
-                                </a>
-                            </li> -->
 
                             <li class="menu-title">Pages</li>
 
                             <li>
                                 <a href="#sidebarAuth" data-bs-toggle="collapse">
-                                    <i data-feather="users"></i>
-                                    <span> Authentication </span>
+                                    <i data-feather="aperture"></i>
+                                    <span> Brand </span>
                                     <span class="menu-arrow"></span>
                                 </a>
                                 <div class="collapse" id="sidebarAuth">
                                     <ul class="nav-second-level">
                                         <li>
-                                            <a href="auth-login.html" class="tp-link">Log In</a>
+                                            <a href="{{ route('all.brand') }}" class="tp-link">All Brands</a>
                                         </li>
                                         <li>
-                                            <a href="auth-register.html" class="tp-link">Register</a>
+                                            <a href="{{ route('add.brand') }}" class="tp-link">Add Brand</a>
                                         </li>
-                                        <li>
-                                            <a href="auth-recoverpw.html" class="tp-link">Recover Password</a>
-                                        </li>
-                                        <li>
-                                            <a href="auth-lock-screen.html" class="tp-link">Lock Screen</a>
-                                        </li>
-                                        <li>
-                                            <a href="auth-confirm-mail.html" class="tp-link">Confirm Mail</a>
-                                        </li>
-                                        <li>
-                                            <a href="email-verification.html" class="tp-link">Email Verification</a>
-                                        </li>
-                                        <li>
-                                            <a href="auth-logout.html" class="tp-link">Logout</a>
-                                        </li>
+                                        
                                     </ul>
                                 </div>
                             </li>
 
                             <li>
-                                <a href="#sidebarError" data-bs-toggle="collapse">
+                                <a href="{{ route('all.brand') }}" data-bs-toggle="collapse">
                                     <i data-feather="alert-octagon"></i>
                                     <span> Error Pages </span>
                                     <span class="menu-arrow"></span>
