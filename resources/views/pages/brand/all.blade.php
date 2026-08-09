@@ -25,7 +25,7 @@
                                     <div class="card-header">
                                         <h5 class="card-title mb-0">Basic Datatable</h5>
 
-                                        <a href="{{ route('add.brand') }}" class="btn btn-primary align-self-end">Add Brand</a>
+                                        <a href="{{ route('form.brand') }}" class="btn btn-primary align-self-end">Add Brand</a>
                                     </div><!-- end card header -->
 
                                     <div class="card-body">
@@ -33,31 +33,42 @@
                                             <thead>
                                             <tr>
                                                 @foreach ($headers as $comlumn)
-                                                    <th>{{ $comlumn }}</th>
+                                                   
+                                                        
+                                                        <th>{{ ucfirst(preg_replace('/_/', ' ', $comlumn)) }}</th>
+                                                   
                                                 @endforeach
                                                 <th>Action</th>
                                             </tr>
                                             </thead>
                                             <tbody>
-                                                <tr>
+                                                
                                                     @foreach ($brands as $brand)
-                                                        @foreach ($headers as $comlumn)
-                                                            <td>{{ $brand->$comlumn }}</td>
-                                                        @endforeach
-                                                         <td>
-                                                        <a href="{{ route('edit.brand', $brand->id) }}" class="btn btn-sm btn-outline-primary">Edit</a>
-                                                        <form action="{{ route('delete.brand', $brand->id) }}" method="POST" style="display: inline;">
-                                                            @csrf
-                                                            @method('DELETE')
-                                                            <button id="delete" type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to delete this brand?')">Delete</button>
-                                                        </form>
-                                                    </td>
+                                                        <tr>
+                                                            @foreach ($headers as $comlumn)
+                                                                 @if(str_contains($comlumn, 'image') && $brand->$comlumn)
+                                                                    <td>
+                                                                        <img src="{{ asset($brand->$comlumn) }}" alt="Brand Image" class="avatar avatar-sm rounded-2 me-3">
+                                                                    </td>
+                                                                @else
+                                                                    <td>{{ $brand->$comlumn }}</td>
+                                                                @endif
+                                                            @endforeach
+                                                            <td>
+                                                                <a href="{{ route('form.brand',$brand->id) }}" class="btn btn-sm btn-outline-primary">Edit</a>
+                                                                <form action="{{ route('delete.brand', $brand->id) }}" method="POST" style="display: inline;">
+                                                                    @csrf
+                                                                    @method('DELETE')
+                                                                    <button id="delete" type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to delete this brand?')">Delete</button>
+                                                                </form>
+                                                            </td>
+                                                        </tr>
                                                     @endforeach
                                                    
-                                                </tr>
+                                             
                                                   @if (count($brands) === 0)
                                                     <tr>
-                                                        <td colspan="{{ count($headers) }}" class="text-center">No brands found.</td>
+                                                        <td colspan="{{ count($headers) + 1 }}" class="text-center">No brands found.</td>
                                                     </tr>
                                                       
                                                   @endif

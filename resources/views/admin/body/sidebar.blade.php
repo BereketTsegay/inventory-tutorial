@@ -51,7 +51,7 @@
                                             <a href="{{ route('all.brand') }}" class="tp-link">All Brands</a>
                                         </li>
                                         <li>
-                                            <a href="{{ route('add.brand') }}" class="tp-link">Add Brand</a>
+                                            <a href="{{ route('form.brand') }}" class="tp-link">Add Brand</a>
                                         </li>
                                         
                                     </ul>

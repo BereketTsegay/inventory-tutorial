@@ -33,11 +33,9 @@ Route::middleware('auth')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::controller(BrandController::class)->group(function () {
         Route::get('/brand/all', 'AllBrand')->name('all.brand');
-        Route::get('/brand/add', 'AddBrand')->name('add.brand');
+        Route::get('/brand/add/{id?}', 'FormBrand')->name('form.brand');
         Route::post('/brand/store', 'StoreBrand')->name('store.brand');
-        Route::get('/brand/edit/{id}', 'EditBrand')->name('edit.brand');
-        Route::post('/brand/update', 'UpdateBrand')->name('update.brand');
-        Route::get('/brand/delete/{id}', 'DeleteBrand')->name('delete.brand');
+        Route::post('/brand/delete/{id}', 'DeleteBrand')->name('delete.brand');
     });
 });
 

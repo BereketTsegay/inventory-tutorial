@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class BrandRequest extends FormRequest
 {
@@ -12,7 +13,7 @@ class BrandRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -24,8 +25,8 @@ class BrandRequest extends FormRequest
     {
         return [
             //
-            'name' => ['required',  Rule::unique('brands', 'brand_name')->ignore($this->brand)],
-            'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'brand_name' => ['required',  Rule::unique('brands', 'brand_name')->ignore($this->brand)],
+            'brand_image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ];
     }
 }

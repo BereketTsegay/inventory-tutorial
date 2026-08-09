@@ -14,25 +14,33 @@ class BrandController extends Controller
     public function AllBrand()
     {
         $headers = Schema::getColumnListing((new Brand)->getTable());
+        $headers = array_filter($headers, function ($header) {
+            return $header !== 'created_at' && $header !== 'updated_at';
+        });
 
         $brands = Brand::all(); // Adjust the number of items per page as needed
 
         return view('pages.brand.all', compact('brands', 'headers'));
     }
 
-    public function AddBrand()
+    public function FormBrand($id = null)
     {
-        return view('pages.brand.add');
+        $brand = !!$id ? Brand::find($id) : new Brand();
+        return view('pages.brand.add', compact('brand'));
     }
+   
 
     public function StoreBrand(BrandRequest $request)
     {
+       
         
-        $brand = $request->id ? Brand::find($request->id) : new \App\Models\Brand();
-        $brand->brand_name = $request->input('name');
 
-        if ($request->hasFile('image')) {
-            $image = $request->file('image');
+        $brand = $request->input('id') ? Brand::whereId($request->input('id'))->first() : new Brand();
+
+        $brand->brand_name = $request->input('brand_name');
+
+        if ($request->hasFile('brand_image')) {
+            $image = $request->file('brand_image');
             $imageName = time() . '_' . $image->getClientOriginalName();
             $image->move(public_path('uploads/brands'), $imageName);
             $brand->brand_image = 'uploads/brands/' . $imageName;
@@ -40,7 +48,12 @@ class BrandController extends Controller
 
         $brand->save();
 
-        return redirect()->route('all.brand')->with('success', 'Brand ' . $brand->brand_name . ' saved successfully.');
+        $notification = array(
+            'message' => 'Brand ' . $brand->brand_name . ' saved successfully.',
+            'alert-type' => 'success'
+        );
+
+        return redirect()->route('all.brand')->with($notification);
     }
 
     public function DeleteBrand($id)
@@ -54,6 +67,11 @@ class BrandController extends Controller
 
         $brand->delete();
 
-        return redirect()->route('all.brand')->with('success', 'Brand deleted successfully.');
+        $notification = array(
+            'message' => 'Brand deleted successfully.',
+            'alert-type' => 'success'
+        );
+
+        return redirect()->route('all.brand')->with($notification);
     }
 }
