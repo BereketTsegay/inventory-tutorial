@@ -25,7 +25,7 @@ class BrandRequest extends FormRequest
     {
         return [
             //
-            'brand_name' => ['required',  Rule::unique('brands', 'brand_name')->ignore($this->brand)],
+            'brand_name' => ['required',  Rule::unique('brands', 'brand_name')->ignore($this->id)],
             'brand_image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ];
     }
