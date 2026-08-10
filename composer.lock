@@ -1475,6 +1475,7 @@
         },
         {
             "name": "league/commonmark",
+<<<<<<< HEAD
             "version": "2.9.1",
             "source": {
                 "type": "git",
@@ -1485,6 +1486,18 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/thephpleague/commonmark/zipball/73cb188c785abfa7a7bec73487148202968274c6",
                 "reference": "73cb188c785abfa7a7bec73487148202968274c6",
+=======
+            "version": "2.9.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/thephpleague/commonmark.git",
+                "reference": "5703d83ba3da3b2e356a5fedc848ed6d8ffb6529"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/thephpleague/commonmark/zipball/5703d83ba3da3b2e356a5fedc848ed6d8ffb6529",
+                "reference": "5703d83ba3da3b2e356a5fedc848ed6d8ffb6529",
+>>>>>>> 5fc226a938417e75849bc90d21d44291a1079ddc
                 "shasum": ""
             },
             "require": {
@@ -1578,7 +1591,11 @@
                     "type": "tidelift"
                 }
             ],
+<<<<<<< HEAD
             "time": "2026-08-09T14:10:38+00:00"
+=======
+            "time": "2026-08-03T13:42:31+00:00"
+>>>>>>> 5fc226a938417e75849bc90d21d44291a1079ddc
         },
         {
             "name": "league/config",
@@ -7200,6 +7217,7 @@
         },
         {
             "name": "laravel/pint",
+<<<<<<< HEAD
             "version": "v1.30.5",
             "source": {
                 "type": "git",
@@ -7210,6 +7228,18 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/laravel/pint/zipball/fe4148c503a0e266353d61396b79bbf7f35122df",
                 "reference": "fe4148c503a0e266353d61396b79bbf7f35122df",
+=======
+            "version": "v1.30.4",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/laravel/pint.git",
+                "reference": "a96cb6eee2961905d2fce7207aefb80945bf6b28"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/laravel/pint/zipball/a96cb6eee2961905d2fce7207aefb80945bf6b28",
+                "reference": "a96cb6eee2961905d2fce7207aefb80945bf6b28",
+>>>>>>> 5fc226a938417e75849bc90d21d44291a1079ddc
                 "shasum": ""
             },
             "require": {
@@ -7222,14 +7252,22 @@
             "require-dev": {
                 "composer/semver": "^3.4.4",
                 "friendsofphp/php-cs-fixer": "^3.95.18",
+<<<<<<< HEAD
                 "illuminate/view": "^13.24.0",
+=======
+                "illuminate/view": "^12.65.0",
+>>>>>>> 5fc226a938417e75849bc90d21d44291a1079ddc
                 "larastan/larastan": "^3.10.0",
                 "laravel-zero/framework": "^13.0.0",
                 "laravel/agent-detector": "^2.0.2",
                 "laravel/prompts": "^0.3.22",
                 "mockery/mockery": "^1.6.12",
                 "nunomaduro/termwind": "^2.4.0",
+<<<<<<< HEAD
                 "pestphp/pest": "^4.7.8"
+=======
+                "pestphp/pest": "^3.8.7"
+>>>>>>> 5fc226a938417e75849bc90d21d44291a1079ddc
             },
             "bin": [
                 "builds/pint"
@@ -7266,7 +7304,11 @@
                 "issues": "https://github.com/laravel/pint/issues",
                 "source": "https://github.com/laravel/pint"
             },
+<<<<<<< HEAD
             "time": "2026-08-10T15:35:50+00:00"
+=======
+            "time": "2026-08-05T16:47:22+00:00"
+>>>>>>> 5fc226a938417e75849bc90d21d44291a1079ddc
         },
         {
             "name": "laravel/roster",
