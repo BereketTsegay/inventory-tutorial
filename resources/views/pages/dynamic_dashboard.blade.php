@@ -24,7 +24,40 @@
     @if(session('success'))
         <div class="alert alert-success">{{ session('success') }}</div>
     @endif
+    <!-- Interactive Filtration Control Block Panel -->
+    <div class="card bg-light mb-4 shadow-sm">
+        <div class="card-body">
+            <form action="{{ route('dynamic.index', $table) }}" method="GET" class="row g-3 align-items-end">
+                <!-- Global Keyword Input Component -->
+                <div class="col-md-4">
+                    <label class="form-label font-weight-bold">Search Table Fields</label>
+                    <input type="text" name="search" class="form-control" placeholder="Search values..." value="{{ request('search') }}">
+                </div>
 
+                <!-- Loop Dynamic Select/Enum Field Filters -->
+                @foreach($fields as $field)
+                    @if($field['type'] === 'select')
+                        <div class="col-md-2">
+                            <label class="form-label">{{ $field['label'] }} Filter</label>
+                            <select name="filter_{{ $field['name'] }}" class="form-select">
+                                <option value="">All options</option>
+                                @foreach($field['options'] as $option)
+                                    <option value="{{ $option }}" {{ request('filter_'.$field['name']) === $option ? 'selected' : '' }}>
+                                        {{ ucfirst($option) }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    @endif
+                @endforeach
+
+                <div class="col-md-2 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary w-100">Apply</button>
+                    <a href="{{ route('dynamic.index', $table) }}" class="btn btn-outline-secondary w-100">Reset</a>
+                </div>
+            </form>
+        </div>
+    </div>
     <div class="table-responsive bg-white shadow-sm rounded">
         <table class="table table-hover align-middle mb-0">
             <thead class="table-light">

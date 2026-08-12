@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Services\DynamicFormService;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 
 class DynamicFormController extends Controller
@@ -16,13 +18,40 @@ class DynamicFormController extends Controller
         $this->formService = $formService;
     }
 
-    public function index($table)
+    public function index(Request $request, $table)
     {
         $fields = $this->formService->getFormFields($table);
-        if (empty($fields)) abort(404, "Table schema target not found.");
+        if (empty($fields)) abort(404);
 
-        // Paginate record dataset dynamically from database engine
-        $records = DB::table($table)->orderBy('id', 'desc')->paginate(10);
+        $query = DB::table($table);
+
+        // 1. Structural Row Guard Filter: Enforce standard row isolation rules
+        // Assumes your guarded tables contain a user tracking column (e.g., 'user_id')
+        if (Schema::hasColumn($table, 'user_id')) {
+            $query->where('user_id', Auth::id());
+        }
+
+        // 2. Global Text Search
+        if ($request->filled('search')) {
+            $searchTerm = '%' . $request->input('search') . '%';
+            $query->where(function ($subQuery) use ($fields, $searchTerm) {
+                foreach ($fields as $field) {
+                    if (in_array($field['type'], ['text', 'textarea', 'number'])) {
+                        $subQuery->orWhere($field['name'], 'LIKE', $searchTerm);
+                    }
+                }
+            });
+        }
+
+        // 3. Dynamic Enum/Select Filters
+        foreach ($fields as $field) {
+            if ($field['type'] === 'select' && $request->filled('filter_' . $field['name'])) {
+                $query->where($field['name'], $request->input('filter_' . $field['name']));
+            }
+        }
+
+        // Fetch records with query parameters preserved in pagination links
+        $records = $query->paginate(15)->withQueryString();
 
         return view('pages.dynamic_dashboard', compact('fields', 'table', 'records'));
     }
