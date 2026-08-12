@@ -28,12 +28,12 @@ class BrandController extends Controller
         $brand = !!$id ? Brand::find($id) : new Brand();
         return view('pages.brand.add', compact('brand'));
     }
-   
+
 
     public function StoreBrand(BrandRequest $request)
     {
-       
-        
+
+
 
         $brand = $request->input('id') ? Brand::whereId($request->input('id'))->first() : new Brand();
 
@@ -56,10 +56,11 @@ class BrandController extends Controller
         return redirect()->route('all.brand')->with($notification);
     }
 
-    public function DeleteBrand($id)
+    public function DeleteBrand(string $id)
     {
-        $brand = Brand::findOrFail($id);
-        
+
+        $brand = Brand::whereId($id)->first();
+
         //delete the brand image file if it exists
         if ($brand->brand_image && file_exists(public_path($brand->brand_image))) {
             unlink(public_path($brand->brand_image));

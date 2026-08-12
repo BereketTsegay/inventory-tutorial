@@ -33,9 +33,9 @@
                                     <span> Dashboard </span>
                                     <span class="menu-arrow"></span>
                                 </a>
-                               
+
                             </li>
-                
+
 
                             <li class="menu-title">Pages</li>
 
@@ -48,14 +48,20 @@
                                 <div class="collapse" id="sidebarAuth">
                                     <ul class="nav-second-level">
                                         <li>
-                                            <a href="{{ route('all.brand') }}" class="tp-link">All Brands</a>
+                                            <a href="{{ route('dynamic.index', 'brands') }}" class="tp-link">All Brands</a>
                                         </li>
                                         <li>
-                                            <a href="{{ route('form.brand') }}" class="tp-link">Add Brand</a>
+                                            <a href="{{ route('dynamic.form.create', 'brands') }}" class="tp-link">Add Brand</a>
                                         </li>
-                                        
+
                                     </ul>
                                 </div>
+                            </li>
+                           <li>
+                                <a href="{{ route('dynamic.index', (new App\Models\WareHouse())->getTable()) }}" class="tp-link">
+                                    <i data-feather="command"></i>
+                                    <span> Warehouse </span>
+                                </a>
                             </li>
 
                             <li>
@@ -132,10 +138,10 @@
                             </li>
 
 
-                            
+
 
                         </ul>
-            
+
                     </div>
                     <!-- End Sidebar -->
 

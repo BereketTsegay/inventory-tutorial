@@ -1,0 +1,166 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use App\Services\DynamicFormService;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+
+class DynamicFormController extends Controller
+{
+    protected $formService;
+
+    public function __construct(DynamicFormService $formService)
+    {
+        $this->formService = $formService;
+    }
+
+    public function index($table)
+    {
+        $fields = $this->formService->getFormFields($table);
+        if (empty($fields)) abort(404, "Table schema target not found.");
+
+        // Paginate record dataset dynamically from database engine
+        $records = DB::table($table)->orderBy('id', 'desc')->paginate(10);
+
+        return view('pages.dynamic_dashboard', compact('fields', 'table', 'records'));
+    }
+
+    // 1. Create Render
+    public function create($table)
+    {
+        $fields = $this->formService->getFormFields($table);
+        if (empty($fields)) abort(404, "Table schema not found.");
+
+        $hasFiles = collect($fields)->contains('type', 'file');
+        $record = null; // No existing record in create state
+
+        return view('pages.dynamic_form', compact('fields', 'table', 'hasFiles', 'record'));
+    }
+
+    // 2. Edit Render
+    public function edit($table, $id)
+    {
+        $fields = $this->formService->getFormFields($table);
+        if (empty($fields)) abort(404, "Table schema not found.");
+
+        $record = DB::table($table)->where('id', $id)->first();
+        if (!$record) abort(404, "Record not found.");
+
+        $hasFiles = collect($fields)->contains('type', 'file');
+
+        return view('pages.dynamic_form', compact('fields', 'table', 'hasFiles', 'record'));
+    }
+
+    // 3. Store Logic (Create Action)
+    public function store(Request $request, $table)
+    {
+        $fields = $this->formService->getFormFields($table);
+        $validatedData = $request->validate($this->buildValidationRules($fields));
+
+        foreach ($fields as $field) {
+            if ($field['type'] === 'file' && $request->hasFile($field['name'])) {
+                $validatedData[$field['name']] = $request->file($field['name'])->store('uploads/' . $table, 'public');
+            } elseif ($field['type'] === 'checkbox') {
+                $validatedData[$field['name']] = $request->has($field['name']);
+            }
+        }
+
+        DB::table($table)->insert($validatedData);
+
+        $notification = array(
+            'message' => 'Record saved successfully!',
+            'alert-type' => 'success'
+        );
+        return redirect()->route('dynamic.index', $table)->with($notification);
+    }
+
+    // 4. Update Logic (Edit Action)
+    public function update(Request $request, $table, $id)
+    {
+        $fields = $this->formService->getFormFields($table);
+        $record = DB::table($table)->where('id', $id)->first();
+        if (!$record) abort(404);
+
+        // Validation rules are less strict for files on update (nullable if not re-uploaded)
+        $rules = $this->buildValidationRules($fields, true);
+        $validatedData = $request->validate($rules);
+
+        foreach ($fields as $field) {
+            if ($field['type'] === 'file') {
+                if ($request->hasFile($field['name'])) {
+                    // Delete old file asset if it exists
+                    if (!empty($record->{$field['name']})) {
+                        Storage::disk('public')->delete($record->{$field['name']});
+                    }
+                    $validatedData[$field['name']] = $request->file($field['name'])->store('uploads/' . $table, 'public');
+                } else {
+                    // Retain old value if no new asset is loaded
+                    unset($validatedData[$field['name']]);
+                }
+            } elseif ($field['type'] === 'checkbox') {
+                $validatedData[$field['name']] = $request->has($field['name']);
+            }
+        }
+
+        DB::table($table)->where('id', $id)->update($validatedData);
+        $notification = array(
+            'message' => 'Record updated successfully!',
+            'alert-type' => 'success'
+        );
+        return redirect()->route('dynamic.index', $table)->with($notification);
+    }
+
+    // 5. Destroy Logic (Delete Action)
+    public function destroy($table, $id)
+    {
+        $fields = $this->formService->getFormFields($table);
+        $record = DB::table($table)->where('id', $id)->first();
+        if (!$record) abort(404);
+
+        // Clear associated media assets from disk
+        foreach ($fields as $field) {
+            if ($field['type'] === 'file' && !empty($record->{$field['name']})) {
+                Storage::disk('public')->delete($record->{$field['name']});
+            }
+        }
+
+        DB::table($table)->where('id', $id)->delete();
+        $notification = array(
+            'message' => 'Record deleted successfully!',
+            'alert-type' => 'success'
+        );
+        return redirect()->route('dynamic.index', $table)->with($notification);
+    }
+
+    // Helper method to keep dynamic validation logic centralized
+    private function buildValidationRules($fields, $isUpdate = false): array
+    {
+        $rules = [];
+        foreach ($fields as $field) {
+            $fieldRules = [];
+
+            // Files are always optional on updates so users don't have to re-upload every time
+            if ($field['type'] === 'file' && $isUpdate) {
+                $fieldRules[] = 'nullable';
+            } else {
+                $fieldRules[] = $field['required'] ? 'required' : 'nullable';
+            }
+
+            if ($field['type'] === 'file') {
+                $fieldRules[] = 'image|max:2048';
+            } elseif ($field['type'] === 'select') {
+                $fieldRules[] = 'in:' . implode(',', $field['options']);
+            } elseif ($field['type'] === 'number') {
+                $fieldRules[] = 'numeric';
+            } else {
+                $fieldRules[] = 'string';
+            }
+
+            $rules[$field['name']] = implode('|', $fieldRules);
+        }
+        return $rules;
+    }
+}
+
