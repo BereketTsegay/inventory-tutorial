@@ -90,7 +90,10 @@ class DynamicFormController extends Controller
 
         foreach ($fields as $field) {
             if ($field['type'] === 'file' && $request->hasFile($field['name'])) {
-                $validatedData[$field['name']] = $request->file($field['name'])->store('uploads/' . $table, 'public');
+                $image = $request->file($field['name']);
+                $imageName = time() . '_' . $image->getClientOriginalName();
+                $image->move(public_path('uploads/'.$table), $imageName);
+                $validatedData[$field['name']] = 'uploads/' . $table . '/' . $imageName;
             } elseif ($field['type'] === 'checkbox') {
                 $validatedData[$field['name']] = $request->has($field['name']);
             }
@@ -123,7 +126,10 @@ class DynamicFormController extends Controller
                     if (!empty($record->{$field['name']})) {
                         Storage::disk('public')->delete($record->{$field['name']});
                     }
-                    $validatedData[$field['name']] = $request->file($field['name'])->store('uploads/' . $table, 'public');
+                    $image = $request->file($field['name']);
+                    $imageName = time() . '_' . $image->getClientOriginalName();
+                    $image->move(public_path('uploads/'.$table), $imageName);
+                    $validatedData[$field['name']] = 'uploads/' . $table . '/' . $imageName;
                 } else {
                     // Retain old value if no new asset is loaded
                     unset($validatedData[$field['name']]);

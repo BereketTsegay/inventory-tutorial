@@ -78,7 +78,7 @@
                                 {{-- RENDER SAVED IMAGES INSIDE THE DATAGRID GRID --}}
                                 @if($field['type'] === 'file')
                                     @if(!empty($row->{$field['name']}))
-                                        <img src="{{ asset('storage/' . $row->{$field['name']}) }}"
+                                        <img src="{{ asset($row->{$field['name']}) }}"
                                              class="img-thumbnail" style="max-height: 50px; width: 50px; object-fit: cover;">
                                     @else
                                         <span class="text-muted text-uppercase small">None</span>

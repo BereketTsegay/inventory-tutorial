@@ -79,7 +79,7 @@
                                     <div id="container-preview-{{ $field['name'] }}" class="mt-2 {{ $currentValue ? '' : 'd-none' }}">
                                         <p class="text-muted small mb-1">Active File / Preview:</p>
                                         <img id="preview-{{ $field['name'] }}"
-                                            src="{{ $currentValue ? asset('storage/' . $currentValue) : '#' }}"
+                                            src="{{ $currentValue ? asset( $currentValue) : '#' }}"
                                             alt="Preview Panel" class="img-thumbnail" style="max-height: 180px; object-fit: contain;">
                                     </div>
 
