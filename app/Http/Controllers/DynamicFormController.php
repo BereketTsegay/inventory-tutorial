@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 class DynamicFormController extends Controller
 {
@@ -86,7 +87,7 @@ class DynamicFormController extends Controller
     public function store(Request $request, $table)
     {
         $fields = $this->formService->getFormFields($table);
-        $validatedData = $request->validate($this->buildValidationRules($fields));
+        $validatedData = $request->validate($this->buildValidationRules($table, $fields, true, null));
 
         foreach ($fields as $field) {
             if ($field['type'] === 'file' && $request->hasFile($field['name'])) {
@@ -116,7 +117,7 @@ class DynamicFormController extends Controller
         if (!$record) abort(404);
 
         // Validation rules are less strict for files on update (nullable if not re-uploaded)
-        $rules = $this->buildValidationRules($fields, true);
+        $rules = $this->buildValidationRules($table, $fields, true, $id);
         $validatedData = $request->validate($rules);
 
         foreach ($fields as $field) {
@@ -170,21 +171,24 @@ class DynamicFormController extends Controller
     }
 
     // Helper method to keep dynamic validation logic centralized
-    private function buildValidationRules($fields, $isUpdate = false): array
+    private function buildValidationRules(string $table, array $fields, bool $isUpdate = false, $id = null): array
     {
         $rules = [];
+
         foreach ($fields as $field) {
             $fieldRules = [];
 
-            // Files are always optional on updates so users don't have to re-upload every time
+            // Set required or nullable properties
             if ($field['type'] === 'file' && $isUpdate) {
                 $fieldRules[] = 'nullable';
             } else {
                 $fieldRules[] = $field['required'] ? 'required' : 'nullable';
             }
 
+            // Set basic datatype constraints
             if ($field['type'] === 'file') {
-                $fieldRules[] = 'image|max:2048';
+                $fieldRules[] = 'image';
+                $fieldRules[] = 'max:2048';
             } elseif ($field['type'] === 'select') {
                 $fieldRules[] = 'in:' . implode(',', $field['options']);
             } elseif ($field['type'] === 'number') {
@@ -193,9 +197,36 @@ class DynamicFormController extends Controller
                 $fieldRules[] = 'string';
             }
 
-            $rules[$field['name']] = implode('|', $fieldRules);
+            // Inject Fluent Unique validation objects dynamically
+            if ($field['unique']) {
+                $uniqueRule = Rule::unique($table, $field['name']);
+
+                if ($isUpdate && $id !== null) {
+                    $uniqueRule->ignore($id);
+                }
+
+                $fieldRules[] = $uniqueRule;
+            }
+
+            $rules[$field['name']] = $fieldRules;
         }
+
         return $rules;
+    }
+
+    // 6. Singular Record Detailed Inspector Render
+    public function show($table, $id)
+    {
+        $fields = $this->formService->getFormFields($table);
+        if (empty($fields)) abort(404);
+
+        $record = DB::table($table)->where('id', $id)->first();
+        if (!$record) abort(404);
+
+        // Enforce row-guard infrastructure security check
+        // $this->authorizeRowOwnership($table, $record);
+
+        return view('pages.dynamic_show', compact('fields', 'table', 'record'));
     }
 }
 

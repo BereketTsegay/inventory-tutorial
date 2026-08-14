@@ -3,6 +3,8 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 class DynamicFormService
 {
@@ -13,6 +15,16 @@ class DynamicFormService
         }
 
         $columns = Schema::getColumns($tableName);
+
+        // Fetch all indexes defined on this specific table
+        $indexes = Schema::getIndexes($tableName);
+
+        // Extract names of columns that are part of a unique index
+        $uniqueColumns = collect($indexes)
+            ->filter(fn($index) => $index['unique'] === true)
+            ->flatMap(fn($index) => $index['columns'])
+            ->toArray();
+
         $formFields = [];
 
         foreach ($columns as $column) {
@@ -22,18 +34,13 @@ class DynamicFormService
                 continue;
             }
 
-            // 1. Identify File/Image Upload fields based on naming conventions
             if (preg_match('/(image|photo|avatar|file)$/', $name)) {
                 $type = 'file';
                 $options = [];
-            }
-            // 2. Identify and parse ENUM column properties
-            elseif (str_contains(strtolower($column['type_name']), 'enum')) {
+            } elseif (str_contains(strtolower($column['type_name']), 'enum')) {
                 $type = 'select';
                 $options = $this->getEnumOptions($tableName, $name);
-            }
-            // 3. Fallback to standard scalar mapping
-            else {
+            } else {
                 $type = $this->mapDatabaseTypeToInput($column['type_name']);
                 $options = [];
             }
@@ -43,6 +50,7 @@ class DynamicFormService
                 'type'     => $type,
                 'options'  => $options,
                 'required' => !$column['nullable'],
+                'unique'   => in_array($name, $uniqueColumns), // Appended flag
                 'label'    => ucwords(str_replace('_', ' ', $name))
             ];
         }
@@ -52,19 +60,14 @@ class DynamicFormService
 
     private function getEnumOptions(string $table, string $column): array
     {
-        // Query the database driver directly to fetch enum string configurations
         $type = DB::select("SHOW COLUMNS FROM {$table} WHERE Field = ?", [$column])[0]->Type;
-
-        // Extract array entries inside the enum('val1','val2') string wrapper
         preg_match('/^enum\((.*)\)$/', $type, $matches);
 
         if (!isset($matches[1])) {
             return [];
         }
 
-        return array_map(function($value) {
-            return trim($value, "'");
-        }, explode(',', $matches[1]));
+        return array_map(fn($value) => trim($value, "'"), explode(',', $matches[1]));
     }
 
     private function mapDatabaseTypeToInput(string $dbType): string

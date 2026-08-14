@@ -20,7 +20,7 @@ Route::get('/dashboard', function () {
     return view('admin.index');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
-Route::get('/form/{table}/dashboard', [DynamicFormController::class, 'index'])->name('dynamic.index');
+
 
 Route::middleware('auth')->group(function () {
     Route::get('/logout', [App\Http\Controllers\Auth\AdminController::class, 'logout'])->name('admin.logout');
@@ -34,10 +34,16 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
+
     Route::controller(DynamicFormController::class)->group(function () {
+        // Dynamic Form Index
+        Route::get('/form/{table}/dashboard','index')->name('dynamic.index');
         // Form views
         Route::get('/form/{table}', 'create')->name('dynamic.form.create');
         Route::get('/form/{table}/{id}/edit', 'edit')->name('dynamic.form.edit');
+
+        // New: Singular Detailed Record View
+        Route::get('/form/{table}/{id}', [DynamicFormController::class, 'show'])->name('dynamic.form.show');
 
         // Form submissions
         Route::post('/form/{table}', 'store')->name('dynamic.form.store');

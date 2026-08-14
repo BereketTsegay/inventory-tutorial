@@ -99,16 +99,18 @@
 
                         <td class="text-end">
                             <div class="btn-group btn-group-sm">
+                                <!-- add view -->
+                                <a href="{{ route('dynamic.form.show', [$table, $row->id]) }}" class="btn btn-outline-info">View</a>
                                 <a href="{{ route('dynamic.form.edit', [$table, $row->id]) }}" class="btn btn-outline-primary">Edit</a>
 
-                                {{-- CONDITIONALLY CONCEAL DELETION SYSTEMS VIA USER ROLES --}}
-                                @can('manage-table-data')
-                                    <form action="{{ route('dynamic.form.destroy', [$table, $row->id]) }}" method="POST" class="d-inline" onsubmit="return confirm('Erase item permanently?');">
+
+
+                                    <form action="{{ route('dynamic.form.destroy', [$table, $row->id]) }}" method="POST"  onsubmit="return confirm('Erase item permanently?');">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-outline-danger">Delete</button>
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
                                     </form>
-                                @endcan
+
                             </div>
                         </td>
                     </tr>

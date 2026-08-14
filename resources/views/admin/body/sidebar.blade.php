@@ -40,27 +40,28 @@
                             <li class="menu-title">Pages</li>
 
                             <li>
-                                <a href="#sidebarAuth" data-bs-toggle="collapse">
+                                <a href="{{ route('dynamic.index', 'brands') }}" data-bs-toggle="collapse">
                                     <i data-feather="aperture"></i>
                                     <span> Brand </span>
-                                    <span class="menu-arrow"></span>
                                 </a>
-                                <div class="collapse" id="sidebarAuth">
-                                    <ul class="nav-second-level">
-                                        <li>
-                                            <a href="{{ route('dynamic.index', 'brands') }}" class="tp-link">All Brands</a>
-                                        </li>
-                                        <li>
-                                            <a href="{{ route('dynamic.form.create', 'brands') }}" class="tp-link">Add Brand</a>
-                                        </li>
 
-                                    </ul>
-                                </div>
                             </li>
                            <li>
                                 <a href="{{ route('dynamic.index', (new App\Models\WareHouse())->getTable()) }}" class="tp-link">
                                     <i data-feather="command"></i>
                                     <span> Warehouse </span>
+                                </a>
+                            </li>
+                           <li>
+                                <a href="{{ route('dynamic.index', (new App\Models\Supplier())->getTable()) }}" class="tp-link">
+                                    <i data-feather="link-2"></i>
+                                    <span> Supplier </span>
+                                </a>
+                            </li>
+                           <li>
+                                <a href="{{ route('dynamic.index', (new App\Models\Customer())->getTable()) }}" class="tp-link">
+                                    <i data-feather="users"></i>
+                                    <span> Customers </span>
                                 </a>
                             </li>
 
