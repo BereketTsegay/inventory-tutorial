@@ -3,12 +3,12 @@
 <div class="container-xxl">
     <div class="py-3 d-flex align-items-sm-center flex-sm-row flex-column">
         <div class="flex-grow-1">
-            <h4 class="fs-18 fw-semibold m-0">Dynamic Dashboard: {{ ucwords(str_replace('_', ' ', $table)) }}</h4>
+            <h4 class="fs-18 fw-semibold m-0">Dynamic Dashboard: {{ ucwords(str_replace('_', ' ', $model)) }}</h4>
         </div>
         <div class="text-end">
             <ol class="breadcrumb m-0 py-0">
-                <li class="breadcrumb-item"><a href="javascript: void(0);">Dashboard</a></li>
-                <li class="breadcrumb-item active">{{ ucwords(str_replace('_', ' ', $table)) }}</li>
+                <li class="breadcrumb-item"><a href="{{ route('dynamic.form.index', $model) }}">Dashboard</a></li>
+                <li class="breadcrumb-item active">{{ ucwords(str_replace('_', ' ', $model)) }}</li>
             </ol>
         </div>
     </div>
@@ -17,8 +17,8 @@
             <div class="card p-3">
                 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>Data Matrix: {{ ucwords(str_replace('_', ' ', $table)) }}</h2>
-        <a href="{{ route('dynamic.form.create', $table) }}" class="btn btn-success">+ Add New Entry</a>
+        <h2>Data Matrix: {{ ucwords(str_replace('_', ' ', $model)) }}</h2>
+        <a href="{{ route('dynamic.form.create', $model) }}" class="btn btn-success">+ Add New Entry</a>
     </div>
 
     @if(session('success'))
@@ -27,7 +27,7 @@
     <!-- Interactive Filtration Control Block Panel -->
     <div class="card bg-light mb-4 shadow-sm">
         <div class="card-body">
-            <form action="{{ route('dynamic.index', $table) }}" method="GET" class="row g-3 align-items-end">
+            <form action="{{ route('dynamic.form.index', $model) }}" method="GET" class="row g-3 align-items-end">
                 <!-- Global Keyword Input Component -->
                 <div class="col-md-4">
                     <label class="form-label font-weight-bold">Search Table Fields</label>
@@ -53,7 +53,7 @@
 
                 <div class="col-md-2 d-flex gap-2">
                     <button type="submit" class="btn btn-primary w-100">Apply</button>
-                    <a href="{{ route('dynamic.index', $table) }}" class="btn btn-outline-secondary w-100">Reset</a>
+                    <a href="{{ route('dynamic.form.index', $model) }}" class="btn btn-outline-secondary w-100">Reset</a>
                 </div>
             </form>
         </div>
@@ -100,12 +100,12 @@
                         <td class="text-end">
                             <div class="btn-group btn-group-sm">
                                 <!-- add view -->
-                                <a href="{{ route('dynamic.form.show', [$table, $row->id]) }}" class="btn btn-outline-info">View</a>
-                                <a href="{{ route('dynamic.form.edit', [$table, $row->id]) }}" class="btn btn-outline-primary">Edit</a>
+                                <a href="{{ route('dynamic.form.show', [$model, $row->id]) }}" class="btn btn-outline-info">View</a>
+                                <a href="{{ route('dynamic.form.edit', [$model, $row->id]) }}" class="btn btn-outline-primary">Edit</a>
 
 
 
-                                    <form action="{{ route('dynamic.form.destroy', [$table, $row->id]) }}" method="POST"  onsubmit="return confirm('Erase item permanently?');">
+                                    <form action="{{ route('dynamic.form.destroy', [$model, $row->id]) }}" method="POST"  onsubmit="return confirm('Erase item permanently?');">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>

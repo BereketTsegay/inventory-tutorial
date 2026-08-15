@@ -5,7 +5,7 @@
                     <div id="sidebar-menu">
 
                         <div class="logo-box">
-                            <a href="index.html" class="logo logo-light">
+                            <a href=".form.index.html" class="logo logo-light">
                                 <span class="logo-sm">
                                     <img src="{{ asset('backend/assets/images/logo-sm.png') }}" alt="" height="22">
                                 </span>
@@ -13,7 +13,7 @@
                                     <img src="{{ asset('backend/assets/images/logo-light.png') }}" alt="" height="24">
                                 </span>
                             </a>
-                            <a href="index.html" class="logo logo-dark">
+                            <a href=".form.index.html" class="logo logo-dark">
                                 <span class="logo-sm">
                                     <img src="{{ asset('backend/assets/images/logo-sm.png') }}" alt="" height="22">
                                 </span>
@@ -40,28 +40,34 @@
                             <li class="menu-title">Pages</li>
 
                             <li>
-                                <a href="{{ route('dynamic.index', 'brands') }}" data-bs-toggle="collapse">
+                                <a href="{{ route('dynamic.form.index', 'brands') }}" data-bs-toggle="collapse">
                                     <i data-feather="aperture"></i>
                                     <span> Brand </span>
                                 </a>
 
                             </li>
                            <li>
-                                <a href="{{ route('dynamic.index', (new App\Models\WareHouse())->getTable()) }}" class="tp-link">
+                                <a href="{{ route('dynamic.form.index', (new App\Models\WareHouse())->getTable()) }}" class="tp-link">
                                     <i data-feather="command"></i>
                                     <span> Warehouse </span>
                                 </a>
                             </li>
                            <li>
-                                <a href="{{ route('dynamic.index', (new App\Models\Supplier())->getTable()) }}" class="tp-link">
+                                <a href="{{ route('dynamic.form.index', (new App\Models\Supplier())->getTable()) }}" class="tp-link">
                                     <i data-feather="link-2"></i>
                                     <span> Supplier </span>
                                 </a>
                             </li>
                            <li>
-                                <a href="{{ route('dynamic.index', (new App\Models\Customer())->getTable()) }}" class="tp-link">
+                                <a href="{{ route('dynamic.form.index', (new App\Models\Customer())->getTable()) }}" class="tp-link">
                                     <i data-feather="users"></i>
                                     <span> Customers </span>
+                                </a>
+                            </li>
+                           <li>
+                                <a href="{{ route('dynamic.form.index', (new App\Models\ProdactCategory())->getTable()) }}" class="tp-link">
+                                    <i data-feather="git-branch"></i>
+                                    <span> Product Categories </span>
                                 </a>
                             </li>
 

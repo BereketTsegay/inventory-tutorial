@@ -4,13 +4,13 @@
 <div class="container-xxl">
  <div class="py-3 d-flex align-items-sm-center flex-sm-row flex-column">
     <div class="flex-grow-1">
-        <h4 class="fs-18 fw-semibold m-0">Dynamic Form: {{ ucwords(str_replace('_', ' ', $table)) }}</h4>
+        <h4 class="fs-18 fw-semibold m-0">Dynamic Form: {{ ucwords(str_replace('_', ' ', $model)) }}</h4>
     </div>
 
     <div class="text-end">
         <ol class="breadcrumb m-0 py-0">
             <li class="breadcrumb-item"><a href="javascript: void(0);">Form</a></li>
-            <li class="breadcrumb-item active">{{ ucwords(str_replace('_', ' ', $table)) }}</li>
+            <li class="breadcrumb-item active">{{ ucwords(str_replace('_', ' ', $model)) }}</li>
         </ol>
     </div>
 </div>
@@ -26,17 +26,17 @@
         <div>
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb mb-1">
-                    <li class="breadcrumb-item"><a href="{{ route('dynamic.index', $table) }}">{{ ucwords(str_replace('_', ' ', $table)) }} Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{{ route('dynamic.form.index', $model) }}">{{ ucwords(str_replace('_', ' ', $model)) }} Dashboard</a></li>
                     <li class="breadcrumb-item active" aria-current="page">{{ $record ? 'Modify Entry' : 'New Entry' }}</li>
                 </ol>
             </nav>
-            <h2 class="h3 mb-0">{{ $record ? 'Update' : 'Create' }} {{ Str::singular(ucwords(str_replace('_', ' ', $table))) }}</h2>
+            <h2 class="h3 mb-0">{{ $record ? 'Update' : 'Create' }} {{ Str::singular(ucwords(str_replace('_', ' ', $model))) }}</h2>
         </div>
 
         @if($record)
             <div class="d-flex gap-2">
-                <a href="{{ route('dynamic.form.show', [$table, $record->id]) }}" class="btn btn-outline-secondary btn-sm d-flex align-items-center px-3">View Live Details</a>
-                <form action="{{ route('dynamic.form.destroy', [$table, $record->id]) }}" method="POST" onsubmit="return confirm('Drop this structural row record entirely?');">
+                <a href="{{ route('dynamic.form.show', [$model, $record->id]) }}" class="btn btn-outline-secondary btn-sm d-flex align-items-center px-3">View Live Details</a>
+                <form action="{{ route('dynamic.form.destroy', [$model, $record->id]) }}" method="POST" onsubmit="return confirm('Drop this structural row record entirely?');">
                     @csrf
                     @method('DELETE')
                     <button type="submit" class="btn btn-danger btn-sm px-3">Delete Record</button>
@@ -49,7 +49,7 @@
         <div class="alert alert-success border-0 shadow-sm mb-4">{{ session('success') }}</div>
     @endif
 
-    <form action="{{ $record ? route('dynamic.form.update', [$table, $record->id]) : route('dynamic.form.store', $table) }}"
+    <form action="{{ $record ? route('dynamic.form.update', [$model, $record->id]) : route('dynamic.form.store', $model) }}"
           method="POST" {!! $hasFiles ? 'enctype="multipart/form-data"' : '' !!}>
         @csrf
         @if($record) @method('PUT') @endif
@@ -144,7 +144,7 @@
 
         <div class="mt-4 border-top pt-3 d-flex gap-2">
             <button type="submit" class="btn btn-primary px-4 py-2">{{ $record ? 'Update Details' : 'Save Framework Details' }}</button>
-            <a href="{{ route('dynamic.index', $table) }}" class="btn btn-outline-secondary px-4 py-2">Cancel</a>
+            <a href="{{ route('dynamic.form.index', $model) }}" class="btn btn-outline-secondary px-4 py-2">Cancel</a>
         </div>
     </form>
 </div>

@@ -7,13 +7,13 @@
         <div>
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb mb-1">
-                    <li class="breadcrumb-item"><a href="{{ route('dynamic.index', $table) }}">{{ ucwords(str_replace('_', ' ', $table)) }} Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{{ route('dynamic.form.index', $model) }}">{{ ucwords(str_replace('_', ' ', $model)) }} Dashboard</a></li>
                     <li class="breadcrumb-item active" aria-current="page">View Details</li>
                 </ol>
             </nav>
             <h2 class="h3 mb-0">Record Inspector: #{{ $record->id }}</h2>
         </div>
-        <a href="{{ route('dynamic.form.edit', [$table, $record->id]) }}" class="btn btn-primary px-4">Edit This Record</a>
+        <a href="{{ route('dynamic.form.edit', [$model, $record->id]) }}" class="btn btn-primary px-4">Edit This Record</a>
     </div>
 
     <div class="row g-4">

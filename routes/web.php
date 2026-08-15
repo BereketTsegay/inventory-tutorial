@@ -33,24 +33,19 @@ Route::middleware('auth')->group(function () {
     // Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-Route::middleware('auth')->group(function () {
 
-    Route::controller(DynamicFormController::class)->group(function () {
-        // Dynamic Form Index
-        Route::get('/form/{table}/dashboard','index')->name('dynamic.index');
-        // Form views
-        Route::get('/form/{table}', 'create')->name('dynamic.form.create');
-        Route::get('/form/{table}/{id}/edit', 'edit')->name('dynamic.form.edit');
+Route::middleware(['auth'])->group(function () {
+    // Model-driven CRUD resource routes
+    Route::get('/dashboard/{model}', [DynamicFormController::class, 'index'])->name('dynamic.form.index');
+    Route::get('/form/{model}', [DynamicFormController::class, 'create'])->name('dynamic.form.create');
+    Route::get('/form/{model}/{id}/edit', [DynamicFormController::class, 'edit'])->name('dynamic.form.edit');
+    Route::get('/form/{model}/{id}', [DynamicFormController::class, 'show'])->name('dynamic.form.show');
 
-        // New: Singular Detailed Record View
-        Route::get('/form/{table}/{id}', [DynamicFormController::class, 'show'])->name('dynamic.form.show');
-
-        // Form submissions
-        Route::post('/form/{table}', 'store')->name('dynamic.form.store');
-        Route::put('/form/{table}/{id}', 'update')->name('dynamic.form.update');
-        Route::delete('/form/{table}/{id}', 'destroy')->name('dynamic.form.destroy');
-    });
+    Route::post('/form/{model}', [DynamicFormController::class, 'store'])->name('dynamic.form.store');
+    Route::put('/form/{model}/{id}', [DynamicFormController::class, 'update'])->name('dynamic.form.update');
+    Route::delete('/form/{model}/{id}', [DynamicFormController::class, 'destroy'])->name('dynamic.form.destroy');
 });
+
 
 Route::middleware('auth')->group(function () {
     Route::controller(BrandController::class)->group(function () {
