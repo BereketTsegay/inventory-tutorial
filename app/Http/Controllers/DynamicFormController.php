@@ -170,41 +170,54 @@ class DynamicFormController extends Controller
         return redirect()->route('dynamic.index', $table)->with($notification);
     }
 
-    // Helper method to keep dynamic validation logic centralized
+    // Helper method to keep dynamic validation logic centralized// Shared internal compiler utility incorporating email and phone attributes
     private function buildValidationRules(string $table, array $fields, bool $isUpdate = false, $id = null): array
     {
         $rules = [];
 
         foreach ($fields as $field) {
             $fieldRules = [];
-
-            // Set required or nullable properties
+            
+            // Standard required / nullability constraints
             if ($field['type'] === 'file' && $isUpdate) {
                 $fieldRules[] = 'nullable';
             } else {
                 $fieldRules[] = $field['required'] ? 'required' : 'nullable';
             }
 
-            // Set basic datatype constraints
-            if ($field['type'] === 'file') {
+            // Route dynamic rule conditions based on the structural inputs
+            if ($field['type'] === 'email') {
+                $fieldRules[] = 'string';
+                $fieldRules[] = 'email';
+                $fieldRules[] = 'max:255';
+            } 
+            elseif ($field['type'] === 'tel') {
+                $fieldRules[] = 'string';
+                $fieldRules[] = 'min:7';
+                $fieldRules[] = 'max:20';
+                // Pattern match: handles digits, spaces, hyphens, plus symbols, and parentheses
+                $fieldRules[] = 'regex:/^([0-9\s\-\+\(\)]*)$/';
+            } 
+            elseif ($field['type'] === 'file') {
                 $fieldRules[] = 'image';
                 $fieldRules[] = 'max:2048';
-            } elseif ($field['type'] === 'select') {
+            } 
+            elseif ($field['type'] === 'select') {
                 $fieldRules[] = 'in:' . implode(',', $field['options']);
-            } elseif ($field['type'] === 'number') {
+            } 
+            elseif ($field['type'] === 'number') {
                 $fieldRules[] = 'numeric';
-            } else {
+            } 
+            else {
                 $fieldRules[] = 'string';
             }
 
-            // Inject Fluent Unique validation objects dynamically
+            // Apply unique exception rules
             if ($field['unique']) {
                 $uniqueRule = Rule::unique($table, $field['name']);
-
                 if ($isUpdate && $id !== null) {
                     $uniqueRule->ignore($id);
                 }
-
                 $fieldRules[] = $uniqueRule;
             }
 
@@ -213,7 +226,6 @@ class DynamicFormController extends Controller
 
         return $rules;
     }
-
     // 6. Singular Record Detailed Inspector Render
     public function show($table, $id)
     {
