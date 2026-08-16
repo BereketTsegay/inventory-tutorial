@@ -3,23 +3,34 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\Rule;
 
 class DynamicFormService
 {
-    public function getFormFields(string $tableName): array
+    /**
+     * Resolve fully qualified Class Names string targets from clean route tags.
+     */
+    public function resolveModelClass(string $modelName): string
     {
-        if (!Schema::hasTable($tableName)) {
-            return [];
+        // Converts "product_categories" or "productCategory" directly to "ProductCategory"
+        $className = ucfirst(\Str::camel(\Str::singular($modelName)));
+        $fullNamespace = "App\\Models\\" . $className;
+
+        if (!class_exists($fullNamespace)) {
+            abort(404, "Target Model [{$className}] class structure is not initialized.");
         }
 
-        $columns = Schema::getColumns($tableName);
+        return $fullNamespace;
+    }
 
-        // Fetch all indexes defined on this specific table
+    public function getFormFields(string $modelName): array
+    {
+        $modelClass = $this->resolveModelClass($modelName);
+        $modelInstance = new $modelClass();
+        $tableName = $modelInstance->getTable(); // Extract actual database table layout target
+
+        $columns = Schema::getColumns($tableName);
         $indexes = Schema::getIndexes($tableName);
 
-        // Extract names of columns that are part of a unique index
         $uniqueColumns = collect($indexes)
             ->filter(fn($index) => $index['unique'] === true)
             ->flatMap(fn($index) => $index['columns'])
@@ -30,27 +41,30 @@ class DynamicFormService
         foreach ($columns as $column) {
             $name = $column['name'];
 
-            if (in_array($name, ['id', 'created_at', 'updated_at', 'deleted_at'])) {
+            // Skip primary and timestamp fields
+            if (in_array($name, [$modelInstance->getKeyName(), 'created_at', 'updated_at', 'deleted_at','slug'])) {
                 continue;
             }
 
-            if (preg_match('/(image|photo|avatar|file)$/', $name)) {
+            if (str_contains(strtolower($name), 'email')) {
+                $type = 'email';
+            } elseif (preg_match('/(phone|mobile|telephone|tel|whatsapp)/i', $name)) {
+                $type = 'tel';
+            } elseif (preg_match('/(image|photo|avatar|file)$/', $name)) {
                 $type = 'file';
-                $options = [];
             } elseif (str_contains(strtolower($column['type_name']), 'enum')) {
                 $type = 'select';
                 $options = $this->getEnumOptions($tableName, $name);
             } else {
                 $type = $this->mapDatabaseTypeToInput($column['type_name']);
-                $options = [];
             }
 
             $formFields[] = [
                 'name'     => $name,
                 'type'     => $type,
-                'options'  => $options,
+                'options'  => $options ?? [],
                 'required' => !$column['nullable'],
-                'unique'   => in_array($name, $uniqueColumns), // Appended flag
+                'unique'   => in_array($name, $uniqueColumns),
                 'label'    => ucwords(str_replace('_', ' ', $name))
             ];
         }
@@ -62,12 +76,7 @@ class DynamicFormService
     {
         $type = DB::select("SHOW COLUMNS FROM {$table} WHERE Field = ?", [$column])[0]->Type;
         preg_match('/^enum\((.*)\)$/', $type, $matches);
-
-        if (!isset($matches[1])) {
-            return [];
-        }
-
-        return array_map(fn($value) => trim($value, "'"), explode(',', $matches[1]));
+        return isset($matches[1]) ? array_map(fn($value) => trim($value, "'"), explode(',', $matches[1])) : [];
     }
 
     private function mapDatabaseTypeToInput(string $dbType): string

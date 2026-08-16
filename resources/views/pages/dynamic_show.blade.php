@@ -7,13 +7,13 @@
         <div>
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb mb-1">
-                    <li class="breadcrumb-item"><a href="{{ route('dynamic.index', $table) }}">{{ ucwords(str_replace('_', ' ', $table)) }} Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{{ route('dynamic.form.index', $model) }}">{{ ucwords(str_replace('_', ' ', $model)) }} Dashboard</a></li>
                     <li class="breadcrumb-item active" aria-current="page">View Details</li>
                 </ol>
             </nav>
             <h2 class="h3 mb-0">Record Inspector: #{{ $record->id }}</h2>
         </div>
-        <a href="{{ route('dynamic.form.edit', [$table, $record->id]) }}" class="btn btn-primary px-4">Edit This Record</a>
+        <a href="{{ route('dynamic.form.edit', [$model, $record->id]) }}" class="btn btn-primary px-4">Edit This Record</a>
     </div>
 
     <div class="row g-4">
@@ -53,8 +53,8 @@
                             <div class="mb-4 text-center border rounded p-3 bg-light">
                                 <h6 class="text-start text-secondary mb-2 small fw-bold">{{ $field['label'] }}</h6>
                                 @if(!empty($record->{$field['name']}))
-                                    <a href="{{ asset('storage/' . $record->{$field['name']}) }}" target="_blank" title="View Fullsize Asset">
-                                        <img src="{{ asset('storage/' . $record->{$field['name']}) }}" alt="Database Asset Frame" class="img-fluid rounded shadow-sm hover-zoom" style="max-height: 250px; object-fit: contain;">
+                                    <a href="{{ asset( $record->{$field['name']}) }}" target="_blank" title="View Fullsize Asset">
+                                        <img src="{{ asset( $record->{$field['name']}) }}" alt="Database Asset Frame" class="img-fluid rounded shadow-sm hover-zoom" style="max-height: 250px; object-fit: contain;">
                                     </a>
                                 @else
                                     <div class="py-4 text-muted small">No file uploaded for this property entry</div>
