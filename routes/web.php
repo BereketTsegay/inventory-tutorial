@@ -35,16 +35,15 @@ Route::middleware('auth')->group(function () {
 
 
 Route::middleware(['auth'])->group(function () {
-    // Standard CRUD Admin Views
+    // Dynamic Model Dashboard and CRUD Resources
     Route::get('/dashboard/{model}', [DynamicFormController::class, 'index'])->name('dynamic.form.index');
     Route::get('/form/{model}', [DynamicFormController::class, 'create'])->name('dynamic.form.create');
     Route::get('/form/{model}/{id}/edit', [DynamicFormController::class, 'edit'])->name('dynamic.form.edit');
     Route::get('/form/{model}/{id}', [DynamicFormController::class, 'show'])->name('dynamic.form.show');
 
-    // API Endpoint for Dynamic JavaScript Chained Dropdowns
-    Route::get('/api/form-relation/{model}/children', [DynamicFormController::class, 'getChildOptions']);
+    // NEW: API Endpoint to Drop an Individual Image from the JSON String Array Collection
+    Route::delete('/api/form-media/{model}/{id}/remove-image', [DynamicFormController::class, 'removeSingleJsonImage'])->name('dynamic.media.remove');
 
-    // Processing Actions
     Route::post('/form/{model}', [DynamicFormController::class, 'store'])->name('dynamic.form.store');
     Route::put('/form/{model}/{id}', [DynamicFormController::class, 'update'])->name('dynamic.form.update');
     Route::delete('/form/{model}/{id}', [DynamicFormController::class, 'destroy'])->name('dynamic.form.destroy');

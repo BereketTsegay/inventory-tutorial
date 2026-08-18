@@ -73,41 +73,43 @@
                 @forelse($records as $row)
                     <tr>
                         <td><strong>#{{ $row->id }}</strong></td>
-                        @foreach($fields as $field)
-                            <td>
-                                {{-- RENDER SAVED IMAGES INSIDE THE DATAGRID GRID --}}
-                                @if($field['type'] === 'file')
-                                    @if(!empty($row->{$field['name']}))
-                                        <img src="{{ asset($row->{$field['name']}) }}"
-                                             class="img-thumbnail" style="max-height: 50px; width: 50px; object-fit: cover;">
-                                    @else
-                                        <span class="text-muted text-uppercase small">None</span>
-                                    @endif
-                                <!-- Inside the grid generation data columns loops -->
-                                @elseif($field['type'] === 'many_to_many')
-                                    @php $relationName = $field['relation_name']; @endphp
-                                    <div class="d-flex flex-wrap gap-1">
-                                        @forelse($row->$relationName as $pivotItem)
-                                            <span class="badge bg-secondary px-2 py-1 text-white rounded">
-                                                {{ $pivotItem->name ?? $pivotItem->title ?? "ID: ".$pivotItem->id }}
-                                            </span>
-                                        @empty
-                                            <span class="text-muted small">—</span>
-                                        @endforelse
-                                    </div>
+                       <!-- Inside the fields foreach loop in dynamic_index.blade.php -->
+<!-- Inside the fields foreach loop in dynamic_index.blade.php -->
+@foreach($fields as $field)
+    <td>
+        @if(!empty($field['is_relation']))
+            @php 
+                $relName = $field['relation_name']; 
+            @endphp
+            
+            {{-- FIX: Verify the dynamic Eloquent relationship object is hydrated and loaded --}}
+            @if(!empty($relName) && isset($row->$relName))
+                <span class="badge bg-info text-dark shadow-sm px-2">
+                    {{ $row->$relName->name ?? $row->$relName->title ?? $row->$relName->label ?? "ID: " . $row->getAttribute($field['name']) }}
+                </span>
+            @elseif($field['type'] === 'many_to_many' && isset($row->$relName))
+                <div class="d-flex flex-wrap gap-1">
+                    @foreach($row->$relName as $pivotItem)
+                        <span class="badge bg-secondary text-white small px-1">{{ $pivotItem->name ?? $pivotItem->title }}</span>
+                    @endforeach
+                </div>
+            @else
+                <!-- Fallback to raw foreign key index integer printout if method doesn't exist -->
+                <span class="text-muted small">{{ $row->getAttribute($field['name']) ?: '—' }}</span>
+            @endif
 
-                                {{-- RENDER BOOLEAN CHECKBOX VALUES --}}
-                                @elseif($field['type'] === 'checkbox')
-                                    <span class="badge {{ $row->{$field['name']} ? 'bg-success' : 'bg-secondary' }}">
-                                        {{ $row->{$field['name']} ? 'Active' : 'Inactive' }}
-                                    </span>
+        @elseif($field['type'] === 'file')
+            @if(!empty($row->{$field['name']}))
+                <img src="{{ asset('storage/' . $row->{$field['name']}) }}" class="rounded img-thumbnail" style="max-height: 40px;">
+            @else
+                <span class="text-muted small">No file</span>
+            @endif
+        @else
+            {{ Str::limit($row->getAttribute($field['name']), 50) }}
+        @endif
+    </td>
+@endforeach
 
-                                {{-- PLAIN TEXT EXPORT STRINGS --}}
-                                @else
-                                    {{ Str::limit($row->{$field['name']}, 50, '...') }}
-                                @endif
-                            </td>
-                        @endforeach
 
                         <td class="text-end">
                             <div class="btn-group btn-group-sm">

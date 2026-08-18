@@ -9,6 +9,8 @@ class ProdactCategory extends Model
     //
     protected $guarded = [];
 
+ 
+
     protected static function boot() : void
     {
         parent::boot();

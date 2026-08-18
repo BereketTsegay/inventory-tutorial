@@ -9,6 +9,10 @@ class Product extends Model
     //
     protected $guarded = [];
 
+    protected $casts = [
+        'image' => 'array', // <-- Automatically encodes/decodes array maps back and forth from JSON
+    ];
+
     public function images()
     {
         return $this->hasMany(ProductImage::class);

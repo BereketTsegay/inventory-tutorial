@@ -80,35 +80,73 @@ class DynamicFormController extends Controller
     }
 
 
+        // NEW API ACTION: Drops a single item element out of the JSON cluster string mapping array
+    public function removeSingleJsonImage(Request $request, $model, $id)
+    {
+        $modelClass = $this->formService->resolveModelClass($model);
+        $record = $modelClass::findOrFail($id);
+        
+        $fieldName = $request->input('field_name'); // Target column e.g. 'image'
+        $targetIndex = $request->input('index_id'); // Target array offset index integer
+        
+        $paths = json_decode($record->{$fieldName} ?? '[]', true);
+        
+        if (isset($paths[$targetIndex])) {
+            // Drop physical asset file off disk partitions
+            Storage::disk('public')->delete($paths[$targetIndex]);
+            
+            // Re-index array sequence tracking indicators
+            unset($paths[$targetIndex]);
+            $updatedPaths = array_values($paths);
+            
+            // Save modified serialized string data array mapping changes
+            $record->update([
+                $fieldName => !empty($updatedPaths) ? json_encode($updatedPaths) : null
+            ]);
+            
+            return response()->json(['success' => true, 'message' => 'Single image erased.']);
+        }
+        
+        return response()->json(['success' => false, 'message' => 'Element index mapping not located.'], 400);
+    }
 
     public function store(Request $request, $model)
     {
         $modelClass = $this->formService->resolveModelClass($model);
         $fields = $this->formService->getFormFields($model);
+        $tableName = (new $modelClass)->getTable();
 
-        // Filter out structural generic many_to_many types during validation steps
         $scalarFields = collect($fields)->where('type', '!=', 'many_to_many')->toArray();
-        $validatedData = $request->validate($this->buildValidationRules((new $modelClass)->getTable(), $scalarFields));
+        
+        // 1. LIMIT ENFORCEMENT CHECK: Quick validation baseline test before deep storage routines execute
+        foreach ($scalarFields as $field) {
+            if ($field['type'] === 'json_array' && $request->hasFile($field['name'])) {
+                if (count($request->file($field['name'])) > 5) {
+                    return redirect()->back()->withErrors([$field['name'] => 'You cannot upload more than 5 files total onto this input.'])->withInput();
+                }
+            }
+        }
+
+        $validatedData = $request->validate($this->buildValidationRules($tableName, $scalarFields));
 
         foreach ($scalarFields as $field) {
-            if ($field['type'] === 'file' && $request->hasFile($field['name'])) {
+            if ($field['type'] === 'json_array') {
+                $storedPaths = [];
+                if ($request->hasFile($field['name'])) {
+                    foreach ($request->file($field['name']) as $file) {
+                        $storedPaths[] = $file->store('uploads/' . $model, 'public');
+                    }
+                    $validatedData[$field['name']] = json_encode($storedPaths);
+                }
+            }
+            // Standard single file block fallback handles
+            elseif ($field['type'] === 'file' && $request->hasFile($field['name'])) {
                 $validatedData[$field['name']] = $request->file($field['name'])->store('uploads/' . $model, 'public');
-            } elseif ($field['type'] === 'checkbox') {
-                $validatedData[$field['name']] = $request->has($field['name']);
             }
         }
 
-        $record = $modelClass::create($validatedData);
-
-        // Many-to-Many Syncing logic
-        foreach ($fields as $field) {
-            if ($field['type'] === 'many_to_many' && $request->has($field['name'])) {
-                $relation = $field['relation_name'];
-                $record->$relation()->sync($request->input($field['name']));
-            }
-        }
-
-        return redirect()->route('dynamic.form.index', $model)->with('success', 'Model entries saved.');
+        $modelClass::create($validatedData);
+        return redirect()->route('dynamic.form.index', $model)->with('success', 'Saved successfully.');
     }
 
     public function update(Request $request, $model, $id)
@@ -116,35 +154,122 @@ class DynamicFormController extends Controller
         $modelClass = $this->formService->resolveModelClass($model);
         $fields = $this->formService->getFormFields($model);
         $record = $modelClass::findOrFail($id);
+        $tableName = $record->getTable();
 
         $scalarFields = collect($fields)->where('type', '!=', 'many_to_many')->toArray();
-        $validatedData = $request->validate($this->buildValidationRules($record->getTable(), $scalarFields, true, $id));
+
+        // 2. LIMIT ENFORCEMENT CHECK (UPDATE): Calculates existing paths + new items to keep the total count <= 5
+        foreach ($scalarFields as $field) {
+            if ($field['type'] === 'json_array' && $request->hasFile($field['name'])) {
+                $existingCount = count(json_decode($record->{$field['name']} ?? '[]', true));
+                $incomingCount = count($request->file($field['name']));
+                
+                if (($existingCount + $incomingCount) > 5) {
+                    return redirect()->back()->withErrors([$field['name'] => "Adding these would bring the total count to " . ($existingCount + $incomingCount) . ". Max allowed images allocation is 5 total."])->withInput();
+                }
+            }
+        }
+
+        $validatedData = $request->validate($this->buildValidationRules($tableName, $scalarFields, true, $id));
 
         foreach ($scalarFields as $field) {
-            if ($field['type'] === 'file') {
+            if ($field['type'] === 'json_array') {
                 if ($request->hasFile($field['name'])) {
-                    if (!empty($record->{$field['name']})) Storage::disk('public')->delete($record->{$field['name']});
-                    $validatedData[$field['name']] = $request->file($field['name'])->store('uploads/' . $model, 'public');
+                    $existingPaths = json_decode($record->{$field['name']} ?? '[]', true) ?: [];
+                    
+                    // Append new items into the existing JSON array configuration sequence
+                    foreach ($request->file($field['name']) as $file) {
+                        $existingPaths[] = $file->store('uploads/' . $model, 'public');
+                    }
+                    $validatedData[$field['name']] = json_encode($existingPaths);
                 } else {
-                    unset($validatedData[$field['name']]);
+                    unset($validatedData[$field['name']]); // Keep old collection untouched if no files are added
                 }
-            } elseif ($field['type'] === 'checkbox') {
-                $validatedData[$field['name']] = $request->has($field['name']);
+            }
+            // Fallback rules block for single scalar files type elements
+            elseif ($field['type'] === 'file' && $request->hasFile($field['name'])) {
+                if (!empty($record->{$field['name']})) Storage::disk('public')->delete($record->{$field['name']});
+                $validatedData[$field['name']] = $request->file($field['name'])->store('uploads/' . $model, 'public');
             }
         }
 
         $record->update($validatedData);
+        return redirect()->route('dynamic.form.index', $model)->with('success', 'Model entries updated!');
+    }
 
-        // Sync pivot values
-        foreach ($fields as $field) {
-            if ($field['type'] === 'many_to_many') {
-                $relation = $field['relation_name'];
-                $record->$relation()->sync($request->input($field['name'], []));
-            }
+
+    private function buildValidationRules(string $table, array $fields, bool $isUpdate = false, $id = null): array
+{
+    $rules = [];
+
+    foreach ($fields as $field) {
+        $fieldRules = [];
+        
+        // 1. Core structural requirement checks
+        if ($field['type'] === 'file' && $isUpdate) {
+            $fieldRules[] = 'nullable';
+        } else {
+            $fieldRules[] = $field['required'] ? 'required' : 'nullable';
         }
 
-        return redirect()->route('dynamic.form.index', $model)->with('success', 'Model updated!');
+        // 2. Map structural input overlays into split, explicit rule elements
+        if ($field['type'] === 'json_array') {
+            // If handling multi-file updates, validate items individually inside loop variables
+            if (request()->hasFile($field['name'])) {
+                // FIX: Separated clean distinct array values
+                $rules[$field['name'] . '.*'] = ['image', 'max:2048'];
+                continue; // Skips processing scalar rules below for multi-files
+            } else {
+                $fieldRules[] = 'json';
+            }
+        } 
+        elseif ($field['type'] === 'file') {
+            // FIX: Separated 'image' and 'max:2048' into distinct array strings
+            $fieldRules[] = 'image';
+            $fieldRules[] = 'max:2048';
+        } 
+        elseif ($field['type'] === 'email') {
+            $fieldRules[] = 'string';
+            $fieldRules[] = 'email';
+            $fieldRules[] = 'max:255';
+        } 
+        elseif ($field['type'] === 'tel') {
+            $fieldRules[] = 'string';
+            $fieldRules[] = 'min:7';
+            $fieldRules[] = 'max:20';
+            $fieldRules[] = 'regex:/^([0-9\s\-\+\(\)]*)$/';
+        } 
+        elseif ($field['type'] === 'select' || $field['type'] === 'relation') {
+            if (!empty($field['options'])) {
+                $allowedIds = collect($field['options'])->pluck('id')->toArray();
+                if (!empty($allowedIds)) {
+                    $fieldRules[] = 'in:' . implode(',', $allowedIds);
+                }
+            }
+        } 
+        elseif ($field['type'] === 'number') {
+            $fieldRules[] = 'numeric';
+        } 
+        else {
+            $fieldRules[] = 'string';
+        }
+
+        // 3. Append fluent unqiue constraints
+        if (!empty($field['unique'])) {
+            $uniqueRule = \Illuminate\Validation\Rule::unique($table, $field['name']);
+            if ($isUpdate && $id !== null) {
+                $uniqueRule->ignore($id);
+            }
+            $fieldRules[] = $uniqueRule;
+        }
+
+        $rules[$field['name']] = $fieldRules;
     }
+
+    return $rules;
+}
+
+
 
     public function create($model)
     {
@@ -205,41 +330,7 @@ class DynamicFormController extends Controller
         }
     }
 
-    private function buildValidationRules(string $table, array $fields, bool $isUpdate = false, $id = null): array
-    {
-        $rules = [];
-        foreach ($fields as $field) {
-            $fieldRules = [];
-            $fieldRules[] = ($field['type'] === 'file' && $isUpdate) ? 'nullable' : ($field['required'] ? 'required' : 'nullable');
-
-            if ($field['type'] === 'email') {
-                $fieldRules[] = 'string|email|max:255';
-            } elseif ($field['type'] === 'tel') {
-                $fieldRules[] = 'string|min:7|max:20|regex:/^([0-9\s\-\+\(\)]*)$/';
-            } elseif ($field['type'] === 'file') {
-                $fieldRules[] = 'image|max:2048';
-            } elseif ($field['type'] === 'select') {
-                $fieldRules[] = 'in:' . implode(',', $field['options']);
-            }
-            elseif ($field['type'] === 'number') {
-                $fieldRules[] = 'numeric';
-            }
-            else {
-                $fieldRules[] = 'string';
-            }
-
-            if ($field['unique']) {
-                $uniqueRule = Rule::unique($table, $field['name']);
-                if ($isUpdate && $id !== null) {
-                    $uniqueRule->ignore($id);
-                }
-                $fieldRules[] = $uniqueRule;
-            }
-
-            $rules[$field['name']] = $fieldRules;
-        }
-        return $rules;
-    }
+    
 }
 
 
