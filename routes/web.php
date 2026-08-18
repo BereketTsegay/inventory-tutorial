@@ -35,12 +35,16 @@ Route::middleware('auth')->group(function () {
 
 
 Route::middleware(['auth'])->group(function () {
-    // Model-driven CRUD resource routes
+    // Standard CRUD Admin Views
     Route::get('/dashboard/{model}', [DynamicFormController::class, 'index'])->name('dynamic.form.index');
     Route::get('/form/{model}', [DynamicFormController::class, 'create'])->name('dynamic.form.create');
     Route::get('/form/{model}/{id}/edit', [DynamicFormController::class, 'edit'])->name('dynamic.form.edit');
     Route::get('/form/{model}/{id}', [DynamicFormController::class, 'show'])->name('dynamic.form.show');
 
+    // API Endpoint for Dynamic JavaScript Chained Dropdowns
+    Route::get('/api/form-relation/{model}/children', [DynamicFormController::class, 'getChildOptions']);
+
+    // Processing Actions
     Route::post('/form/{model}', [DynamicFormController::class, 'store'])->name('dynamic.form.store');
     Route::put('/form/{model}/{id}', [DynamicFormController::class, 'update'])->name('dynamic.form.update');
     Route::delete('/form/{model}/{id}', [DynamicFormController::class, 'destroy'])->name('dynamic.form.destroy');

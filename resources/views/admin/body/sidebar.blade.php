@@ -66,8 +66,14 @@
                             </li>
                            <li>
                                 <a href="{{ route('dynamic.form.index', (new App\Models\ProdactCategory())->getTable()) }}" class="tp-link">
-                                    <i data-feather="git-branch"></i>
+                                    <i data-feather="git-pull-request"></i>
                                     <span> Product Categories </span>
+                                </a>
+                            </li>
+                           <li>
+                                <a href="{{ route('dynamic.form.index', (new App\Models\Product())->getTable()) }}" class="tp-link">
+                                    <i data-feather="grid"></i>
+                                    <span> Product </span>
                                 </a>
                             </li>
 

@@ -36,6 +36,19 @@
                                     <span class="text-dark fw-bold">{{ $record->{$field['name']} ?: '—' }}</span>
                                 @endif
                             </dd>
+                        <!-- Inside the grid generation data columns loops -->
+                        @elseif($field['type'] === 'many_to_many')
+                            @php $relationName = $field['relation_name']; @endphp
+                            <div class="d-flex flex-wrap gap-1">
+                                @forelse($row->$relationName as $pivotItem)
+                                    <span class="badge bg-secondary px-2 py-1 text-white rounded">
+                                        {{ $pivotItem->name ?? $pivotItem->title ?? "ID: ".$pivotItem->id }}
+                                    </span>
+                                @empty
+                                    <span class="text-muted small">—</span>
+                                @endforelse
+                            </div>
+
                         @endif
                     @endforeach
                 </dl>

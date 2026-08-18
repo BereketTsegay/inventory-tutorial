@@ -86,38 +86,102 @@
             <div class="col-lg-4">
                 <!-- Status Configurations -->
                 <div class="card border-0 shadow-sm p-4 mb-4">
-                    <h5 class="card-title border-bottom pb-2 mb-3 text-muted">Categorization & Rules</h5>
-                    <div class="row g-3">
-                        @foreach($fields as $field)
-                            @if(in_array($field['type'], ['select', 'checkbox']))
-                                @php $currentValue = old($field['name'], $record->{$field['name']} ?? null); @endphp
-                                <div class="col-12">
-                                    @if($field['type'] === 'select')
-                                        <label for="{{ $field['name'] }}" class="form-label fw-bold text-secondary small">
-                                            {{ $field['label'] }}
+    <h5 class="card-title border-bottom pb-2 mb-3 text-muted">Categorization, Relations & Pivot Configurations</h5>
+    <div class="row g-3">
+        @foreach($fields as $field)
+            @if(in_array($field['type'], ['select', 'checkbox', 'relation', 'many_to_many']))
 
-                                            @if($field['required'] && !$record) <span class="text-danger">*</span> @endif
-                                            @if($field['unique']) <span class="badge bg-light text-primary border border-primary px-1 py-0 style-mini-badge">Unique</span> @endif
+                @php
+                    if ($field['type'] === 'many_to_many') {
+                        // Extract array of associated relational table IDs for many-to-many forms
+                        $currentValue = old($field['name'], $record ? $record->{$field['relation_name']}()->pluck('id')->toArray() : []);
+                    } else {
+                        $currentValue = old($field['name'], $record->{$field['name']} ?? null);
+                    }
+                @endphp
 
-                                        </label>
-                                        <select class="form-select bg-light @error($field['name']) is-invalid @enderror" id="{{ $field['name'] }}" name="{{ $field['name'] }}">
-                                            <option value="">Select choice...</option>
-                                            @foreach($field['options'] as $option)
-                                                <option value="{{ $option }}" {{ $currentValue === $option ? 'selected' : '' }}>{{ ucfirst($option) }}</option>
-                                            @endforeach
-                                        </select>
-                                    @elseif($field['type'] === 'checkbox')
-                                        <div class="form-check form-switch pt-2">
-                                            <input class="form-check-input" type="checkbox" id="{{ $field['name'] }}" name="{{ $field['name'] }}" value="1" {{ $currentValue ? 'checked' : '' }}>
-                                            <label class="form-check-label fw-bold text-secondary small" for="{{ $field['name'] }}">{{ $field['label'] }}</label>
-                                        </div>
-                                    @endif
-                                    @error($field['name']) <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
-                                </div>
-                            @endif
-                        @endforeach
-                    </div>
+                <div class="col-12">
+                    {{-- MANY TO MANY RENDERING --}}
+                    @if($field['type'] === 'many_to_many')
+                        <label class="form-label fw-bold text-secondary small">{{ $field['label'] }} (Multi-Select)</label>
+                        <select name="{{ $field['name'] }}[]" class="form-select bg-light" multiple style="height: 120px;">
+                            @foreach($field['options'] as $option)
+                                <option value="{{ $option['id'] }}" {{ in_array($option['id'], (array)$currentValue) ? 'selected' : '' }}>
+                                    {{ $option['label'] }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <span class="text-muted small">Hold Ctrl / Cmd to pick multiple options</span>
+
+                    {{-- STANDARD / DEPENDENT RELATION MENU --}}
+                    @elseif($field['type'] === 'relation')
+                        <label for="{{ $field['name'] }}" class="form-label fw-bold text-secondary small">{{ $field['label'] }}</label>
+                        <select class="form-select bg-light dynamic-relation-select"
+                                id="{{ $field['name'] }}"
+                                name="{{ $field['name'] }}"
+                                data-is-dependent="{{ $field['is_dependent'] ? 'true' : 'false' }}"
+                                data-parent-name="{{ $field['parent_field_name'] }}"
+                                data-current-value="{{ $currentValue }}">
+                            <option value="">Choose item...</option>
+                            @foreach($field['options'] as $option)
+                                <option value="{{ $option['id'] }}" {{ $currentValue == $option['id'] ? 'selected' : '' }}>
+                                    {{ $option['label'] }}
+                                </option>
+                            @endforeach
+                        </select>
+                    @endif
+
+                    {{-- Include fallback rendering handlers for checkboxes and selects here --}}
                 </div>
+            @endif
+        @endforeach
+    </div>
+</div>
+
+<!-- Dynamic Dependent Dropdown Cascading Logic -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const dependentSelects = document.querySelectorAll('.dynamic-relation-select[data-is-dependent="true"]');
+
+    dependentSelects.forEach(select => {
+        const parentFieldName = select.getAttribute('data-parent-name');
+        const parentSelect = document.getElementById(parentFieldName);
+        const currentValue = select.getAttribute('data-current-value');
+        const modelTarget = "{{ $model }}";
+
+        if (parentSelect) {
+            const updateChildOptions = function (parentIdValue) {
+                if (!parentIdValue) {
+                    select.innerHTML = '<option value="">Choose item...</option>';
+                    return;
+                }
+
+                // Query the API route to fetch matching child data
+                fetch(`/api/form-relation/${modelTarget}/children?parent_field=${parentFieldName}&parent_value=${parentIdValue}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        let html = '<option value="">Choose item...</option>';
+                        data.forEach(opt => {
+                            const selected = opt.id == currentValue ? 'selected' : '';
+                            html += `<option value="${opt.id}" ${selected}>${opt.label}</option>`;
+                        });
+                        select.innerHTML = html;
+                    });
+            };
+
+            // Trigger updates dynamically on form load and value changes
+            parentSelect.addEventListener('change', function () {
+                updateChildOptions(this.value);
+            });
+
+            if (parentSelect.value) {
+                updateChildOptions(parentSelect.value);
+            }
+        }
+    });
+});
+</script>
+
 
                 <!-- Asset File Panel Layout -->
                 @if($hasFiles)
