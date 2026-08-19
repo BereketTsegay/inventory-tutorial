@@ -8,7 +8,7 @@ use ReflectionMethod;
 
 class DynamicFormService
 {
-   
+
 
     private function mapDatabaseTypeToInput(string $dbType): string
     {
@@ -21,8 +21,8 @@ class DynamicFormService
             default                                => 'text',
         };
     }
-    
-  
+
+
 
         public function resolveModelClass(string $modelName): string
     {
@@ -47,7 +47,7 @@ class DynamicFormService
 
         foreach ($columns as $column) {
             $name = $column['name'];
-            if (in_array($name, [$modelInstance->getKeyName(), 'user_id', 'created_at', 'updated_at', 'deleted_at'])) {
+            if (in_array($name, [$modelInstance->getKeyName(), 'user_id', 'created_at', 'updated_at', 'deleted_at','slug'])) {
                 continue;
             }
 
@@ -58,16 +58,16 @@ class DynamicFormService
             $parentFieldName = '';
 
             $fkInfo = collect($foreignKeys)->first(fn($fk) => in_array($name, $fk['columns']));
-            
+
             // Normalize relationship detection flags
             if ($fkInfo || str_ends_with($name, '_id')) {
                 $isForeign = true;
                 $type = 'relation';
-                
+
                 // CRITICAL: Clean transformation matching Eloquent conventions
                 // category_id becomes "category", parent_category_id becomes "parentCategory"
                 $relationName = \Str::camel(str_replace('_id', '', $name));
-                
+
                 $targetTable = $fkInfo['foreign_table'] ?? \Str::plural(str_replace('_id', '', $name));
                 $targetModelName = ucfirst(\Str::camel(\Str::singular($targetTable)));
                 $targetModelClass = "App\\Models\\" . $targetModelName;
@@ -116,7 +116,7 @@ class DynamicFormService
                 if ($method->getDeclaringClass()->getName() !== $modelClass) continue;
                 if ($method->getNumberOfParameters() > 0) continue;
                 if (in_array($method->getName(), $ignoredMethods)) continue;
-                
+
                 try {
                     $return = @$method->invoke($modelInstance);
                     if ($return instanceof \Illuminate\Database\Eloquent\Relations\BelongsToMany) {
